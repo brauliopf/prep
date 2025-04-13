@@ -22,49 +22,53 @@ function hasMine(row, col) {
 // console.log(checkMine(1, 2), checkMine(1, 3));
 
 function hasMineAndReveal(row, col) {
+  // If already revealed or out of bounds, exit
+  if (row < 0 || col < 0 || row >= N || col >= N || board[row][col] !== "-") {
+    return false;
+  }
+
+  // If it's a mine, mark it and return true
   if (hasMine(row, col)) {
+    board[row][col] = "*";
     return true;
   }
 
-  // get number of mines around
-  // loop through aux vectors and checkMine
-  function countMinesAround(row, col) {
-    let countMines = 0;
-    pointers = [
-      [-1, -1],
-      [-1, 0],
-      [-1, 1],
-      [0, -1],
-      [0, 1],
-      [1, -1],
-      [1, 0],
-      [1, 1],
-    ];
-    for (aux of pointers) {
-      const nSquare = [];
-      // new row
-      nSquare.push(row + aux[0]);
-      // new col
-      nSquare.push(col + aux[1]);
-      // skip row col
-      if (
-        ((nSquare[0] === row) & (nSquare[1] === col)) |
-        (nSquare[0] < 0) |
-        (nSquare[1] < 0) |
-        (nSquare[0] > N - 1) |
-        (nSquare[1] > N - 1)
-      ) {
-        continue;
-      }
+  // Count adjacent mines
+  let mineCount = 0;
+  const directions = [
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 0],
+    [1, 1],
+  ];
 
-      if (hasMine(nSquare[0], nSquare[1])) {
-        countMines += 1;
-      }
+  for (const [dx, dy] of directions) {
+    const newRow = row + dx;
+    const newCol = col + dy;
+    if (
+      newRow >= 0 &&
+      newCol >= 0 &&
+      newRow < N &&
+      newCol < N &&
+      hasMine(newRow, newCol)
+    ) {
+      mineCount++;
     }
-    return countMines;
   }
 
-  board[row][col] = countMinesAround(row, col);
+  // Reveal current square
+  board[row][col] = mineCount;
+
+  // If zero mines, recursively reveal adjacent squares
+  if (mineCount === 0) {
+    for (const [dx, dy] of directions) {
+      hasMineAndReveal(row + dx, col + dy);
+    }
+  }
 
   return false;
 }
